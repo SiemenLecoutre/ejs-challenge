@@ -2,6 +2,9 @@
 
 const express = require("express");
 const ejs = require("ejs");
+const _ = require('lodash');
+
+const posts = [];
 
 
 
@@ -13,7 +16,9 @@ const app = express();
 
 app.set('view engine', 'ejs');
 
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({
+  extended: true
+}));
 app.use(express.static("public"));
 
 // render the home.ejs on the route /
@@ -21,6 +26,7 @@ app.get("/", function(req, res) {
   res.render("home", {
     // send homeStartingContent to main route
     content: homeStartingContent,
+    posts: posts,
   });
 });
 
@@ -43,14 +49,31 @@ app.get("/compose", function(req, res) {
   res.render("compose");
 });
 
-// get and log compose input
-app.post('/compose', function (req, res) {
-    let post  = req.body.textInput;
-    console.log(post);
-})
+// get post title and content and store in post
+app.post('/compose', function(req, res) {
+  const post = {
+    title: req.body.postTitle,
+    content: req.body.postBody,
+  }
+  posts.push(post);
+  res.redirect('/');
+});
 
+// render blogpost page and get url linked to blogpost name
+app.get("/posts/:postName", function(req, res) {
+// compare URL and blogpost name
+  const requestedTitle = _.lowerCase(req.params.postName);
+  posts.forEach(function(post) {
+  const storedTitle = _.lowerCase(post.title);
 
-
+  if ( storedTitle === requestedTitle) {
+    res.render("post", {
+      title: post.title,
+      post: post.content,
+    });
+  }
+});
+});
 
 
 
